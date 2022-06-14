@@ -1,21 +1,22 @@
 package main
 
 import (
+	ip_utils "cloudflare-ddns/pkg/ip-utils"
+	"cloudflare-ddns/pkg/log"
 	"context"
 	"flag"
 	"strings"
 
-	ip_utils "cloudflare-ddns/pkg/ip-utils"
-	"cloudflare-ddns/pkg/log"
-	"github.com/robfig/cron"
-
 	"github.com/cloudflare/cloudflare-go"
+	"github.com/robfig/cron"
 )
 
 var (
 	cfApiKey   string
 	cfApiEmail string
 	domains    []string
+
+	currentIP string
 )
 
 func init() {
@@ -49,6 +50,12 @@ func updateDomainDNS() {
 	// var ipv6 = ip_utils.GetCurrentIPv6()
 
 	log.Logger.Infof("Current IP v4: %v", ipv4)
+
+	// check is IP changed
+	if ipv4 == currentIP {
+		log.Logger.Debugf("The current IP of the machine has not changed.")
+		return
+	}
 
 	// Construct a new API object
 	cfClient, err := cloudflare.New(cfApiKey, cfApiEmail)
