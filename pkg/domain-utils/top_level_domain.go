@@ -2,27 +2,44 @@ package domain_utils
 
 import "strings"
 
-func GetTopLevelDomains(domains []string) []string {
-	var mapTopLevelDomains = make(map[string]bool)
+func ParseDomain(d string) (subdomain, topLevelDomain string) {
+	domainLevels := strings.Split(d, ".")
+
+	if len(domainLevels) < 2 {
+		// invalid domain
+		return "", ""
+	}
+
+	return strings.Join(domainLevels[:len(domainLevels)-2], "."), strings.Join(domainLevels[len(domainLevels)-2:], ".")
+}
+
+func GetMapTopLevelSubdomains(domains []string) map[string][]string {
+	var mapTLDSubdomainsUniq = make(map[string]map[string]bool)
 
 	for _, d := range domains {
-		domainLevels := strings.Split(d, ".")
+		s, tld := ParseDomain(d)
 
-		if len(domainLevels) < 2 {
-			// domain invalid
+		if len(tld) == 0 {
 			continue
 		}
 
-		topLevelDomain := strings.Join(domainLevels[len(domainLevels)-2:], ".")
+		if _, ok := mapTLDSubdomainsUniq[tld]; !ok {
+			mapTLDSubdomainsUniq[tld] = make(map[string]bool)
+		}
 
-		mapTopLevelDomains[topLevelDomain] = true
+		if len(s) == 0 {
+			s = "@"
+		}
+
+		mapTLDSubdomainsUniq[tld][s] = true
 	}
 
-	topLevelDomains := make([]string, len(mapTopLevelDomains))
-
-	for d := range mapTopLevelDomains {
-		topLevelDomains = append(topLevelDomains, d)
+	var mapTLDSubdomains = make(map[string][]string)
+	for tld, mapUniq := range mapTLDSubdomainsUniq {
+		for s := range mapUniq {
+			mapTLDSubdomains[tld] = append(mapTLDSubdomains[tld], s)
+		}
 	}
 
-	return topLevelDomains
+	return mapTLDSubdomains
 }
