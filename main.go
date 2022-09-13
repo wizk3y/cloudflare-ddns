@@ -7,6 +7,7 @@ import (
 	"cloudflare-ddns/pkg/log"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/robfig/cron"
@@ -65,7 +66,7 @@ func pointToCurrentIP() {
 
 	// get list zone
 	for z, sds := range mapTLDSubdomains {
-		log.Logger.Debugf("Start update DNS record for zone name: %v", z)
+		log.Logger.Debugf("Start update DNS record `%v` for zone name %v", strings.Join(sds, ","), z)
 		_ = upsertZoneDNSRecords(cfClient, ctx, z, sds, ipv4)
 	}
 }
@@ -86,18 +87,18 @@ func upsertZoneDNSRecords(cfClient *cloudflare.API, ctx context.Context, zoneNam
 		oldRecord, ok := mapNameRecord[r]
 		if !ok || oldRecord.ZoneName != zoneName {
 			// create new record
-			log.Logger.Debugf("Start create DNS record for name: %v", sd)
+			log.Logger.Debugf("Start create DNS record for name %v of zone %v", sd, zoneName)
 			_ = insertDNSRecordIP(cfClient, ctx, zoneID, sd, ipv4)
 			continue
 		}
 
 		// check content of old record is identical with current
 		if oldRecord.Content == ipv4 {
-			log.Logger.Infof("Record name %v already point to ip %v", sd, ipv4)
+			log.Logger.Infof("Record name %v of zone %v already point to ip %v", sd, zoneName, ipv4)
 			continue
 		}
 
-		log.Logger.Debugf("Start update DNS record for name: %v", sd)
+		log.Logger.Debugf("Start update DNS record for name %v of zone %v", sd, zoneName)
 		_ = updateDNSRecordIP(cfClient, ctx, zoneID, oldRecord.ID, ipv4)
 	}
 
@@ -107,7 +108,7 @@ func upsertZoneDNSRecords(cfClient *cloudflare.API, ctx context.Context, zoneNam
 func getZoneAndRecords(cfClient *cloudflare.API, ctx context.Context, zoneName string) (string, map[string]cloudflare.DNSRecord, error) {
 	zoneID, err := cfClient.ZoneIDByName(zoneName)
 	if err != nil {
-		log.Logger.Errorf("Error when get zone id by name, details: %v", err)
+		log.Logger.Errorf("Error when get zone id by name. Zone name %v, error details: %v", zoneName, err)
 		return "", nil, err
 	}
 
@@ -116,7 +117,7 @@ func getZoneAndRecords(cfClient *cloudflare.API, ctx context.Context, zoneName s
 		Type: "A",
 	})
 	if err != nil {
-		log.Logger.Errorf("Error when get dns record of zone, details: %v", err)
+		log.Logger.Errorf("Error when get dns record of zone. Zone name %v, error details: %v", zoneName, err)
 		return zoneID, nil, err
 	}
 
@@ -144,7 +145,7 @@ func insertDNSRecordIP(cfClient *cloudflare.API, ctx context.Context, zoneID, na
 		TTL:     1,
 	})
 	if err != nil {
-		log.Logger.Errorf("Error when add dns record, details: %v", err)
+		log.Logger.Errorf("Error when add dns record. Name %v, zone ID %v, error details: %v", name, zoneID, err)
 		return err
 	}
 
@@ -166,7 +167,7 @@ func updateDNSRecordIP(cfClient *cloudflare.API, ctx context.Context, zoneID, re
 		Content: newIP,
 	})
 	if err != nil {
-		log.Logger.Errorf("Error when update dns record, details: %v", err)
+		log.Logger.Errorf("Error when update dns record. Record ID %v, zone ID %v, error details: %v", recordID, zoneID, err)
 		return err
 	}
 
