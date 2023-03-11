@@ -1,0 +1,19 @@
+version: "3.4"
+services:
+  cloudflare-ddns:
+    image: cloudflare-ddns:latest
+    build: 
+      context: .
+      args:
+        SERVICE_NAME: ddns-service
+    ports:
+      - 8008:8008
+    environment:
+      - CF_API_KEY=key
+      - CF_API_EMAIL=email
+      - DOMAINS=domains
+      - AUTH_USER=user
+      - AUTH_PASS=pass
+    volumes:
+      - ./log:/var/log/cf-ddns
+    restart: unless-stopped

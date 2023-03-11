@@ -39,6 +39,11 @@ cloudflare-ddns is a simple tool which already integrated cron inside, that help
     ```
 - Or you can run binary via nohup / tmux with the following command `cloudflare-ddns --cf-api-key=<your_cf_api_key> --cf-api-email=<your_cf_email> --domains=<your_domains>`
 
+## Docker and docker-compose
+- Another option to simplify all above step is running service via docker with simple command `docker-compose up`
+    - Note that you should change configuration before execute command
+    - And if image is wrong kind you need, just change build args and re-build image with `docker-compose build`
+
 ## Config flag
 ### Common config
 - `--cf-api-key=<your_cf_api_key>`: required, cloudflare api key
