@@ -1,7 +1,7 @@
-package log
+package logger
 
 import (
-	"cloudflare-ddns/pkg/config"
+	"cloudflare-ddns/internal/config"
 	"fmt"
 	"log"
 	"os"
@@ -19,8 +19,10 @@ var (
 func init() {
 	if config.Development {
 		logDir = "./log"
+	} else if config.LogDir != "" {
+		logDir = config.LogDir
 	} else {
-		logDir = fmt.Sprintf("/var/log/cf-ddns")
+		logDir = "/var/log/cf-ddns"
 	}
 	stdoutPath = fmt.Sprintf("%s/out.log", logDir)
 	stderrPath = fmt.Sprintf("%s/err.log", logDir)

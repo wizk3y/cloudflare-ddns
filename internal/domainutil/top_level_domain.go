@@ -1,6 +1,9 @@
-package domain_utils
+package domainutil
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 func ParseDomain(d string) (subdomain, topLevelDomain string) {
 	domainLevels := strings.Split(d, ".")
@@ -42,4 +45,17 @@ func GetMapTopLevelSubdomains(domains []string) map[string][]string {
 	}
 
 	return mapTLDSubdomains
+}
+
+func BuildListDomain(tld string, subDomains []string) []string {
+	listDomains := make([]string, 0)
+	for _, sd := range subDomains {
+		if sd == "@" {
+			listDomains = append(listDomains, tld)
+		} else {
+			listDomains = append(listDomains, fmt.Sprintf("%s.%s", sd, tld))
+		}
+	}
+
+	return listDomains
 }
